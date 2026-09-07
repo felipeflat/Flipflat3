@@ -1,0 +1,46 @@
+name: Build Flip Flat APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar arquivos do repositorio
+        uses: actions/checkout@v4
+
+      - name: Descompactar Flip Flat
+        run: unzip FlipFlatSensorLab-source-v0.1.zip
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;35.0.0"
+
+      - name: Preparar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Compilar Flip Flat
+        working-directory: FlipFlatSensorLab
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlipFlat-v0.1-debug-apk
+          path: FlipFlatSensorLab/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
